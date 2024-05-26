@@ -1,9 +1,37 @@
 const express = require('express')
 const fs = require('fs');
+var amqp = require('amqplib/callback_api');
 
 const app = express()
 const port = process.env.PORT || 3000
 
+const rabbitmqUrl = `amqp://${process.env.RABBITMQ_USERNAME || 'user'}:${process.env.RABBITMQ_PASSWORD || 'password'}@${process.env.RABBITMQ_HOST || 'localhost'}:${process.env.RABBITMQ_PORT || 5672}`;
+const queue = process.env.QUEUE_NAME || 'file-reader-node';
+
+// Connect to RabbitMQ server
+amqp.connect(rabbitmqUrl, (error0, connection) => {
+    if (error0) {
+        throw error0;
+    }
+
+    // Create a channel
+    connection.createChannel((error1, channel) => {
+        if (error1) {
+            throw error1;
+        }
+
+        console.log(`[*] Waiting for messages in ${queue}. To exit press CTRL+C`);
+
+        // Consume messages from the queue
+        channel.consume(queue, (msg) => {
+            if (msg !== null) {
+                console.log(`[x] Received: ${msg.content.toString()}`);
+                // Acknowledge the message
+                channel.ack(msg);
+            }
+        });
+    });
+});
 
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`)
