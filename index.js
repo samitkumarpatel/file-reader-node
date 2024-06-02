@@ -10,6 +10,7 @@ const messageSink = new EventEmitter();
 const app = express()
 const port = process.env.PORT || 3000
 
+//File processor
 const processFile = (fileName, callback) => {
     let lines = 0, words = 0, letters = 0;
 
@@ -29,6 +30,7 @@ const processFile = (fileName, callback) => {
     });
 }
 
+//redis PubSub
 const client = redis.createClient({
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT || 6379
@@ -52,6 +54,7 @@ client.subscribe('channel', (message) => {
 });
 
 
+//express
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`)
     next()
@@ -76,6 +79,7 @@ app.listen(port, () => {
     console.log(`file-reader-node application listening on port ${port}`)
 })
 
+//websocket
 const server = new WebSocket.Server({ port: 3001 });
 
 server.on('connection', ws => {
