@@ -13,8 +13,8 @@ const port = process.env.PORT || 3000
 //File processor
 const processFile = (fileName, callback) => {
     let lines = 0, words = 0, letters = 0;
-
-    fs.readFile(fileName, 'utf8', (err, data) => {
+    const fileLookUpPath = process.env.FILE_LOOKUP_PATH || '/tmp/upload'
+    fs.readFile(`${fileLookUpPath}/${fileName}`, 'utf8', (err, data) => {
         if (err) callback(err,null)
 
         lines = data.split('\n').length;
@@ -31,9 +31,13 @@ const processFile = (fileName, callback) => {
 }
 
 //redis PubSub
+
+const redisHost = process.env.REDIS_HOST || '127.0.0.1'
+const redisPort = process.env.REDIS_PORT || 6379
+const redisUrl = `redis://${redisHost}:${redisPort}`
+
 const client = redis.createClient({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379
+    url: redisUrl
 })
 
 client.on('error', err => console.log('Redis Client Error', err));
