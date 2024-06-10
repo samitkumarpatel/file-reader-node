@@ -3,7 +3,7 @@ const express = require('express')
 const fs = require('fs');
 const redis = require('redis')
 const WebSocket = require('ws');
-const EventEmitter = require('events');
+const EventEmitter = require('node:events');
 // Initialize EventEmitter to act as a sink
 const messageSink = new EventEmitter();
 
@@ -87,23 +87,26 @@ app.listen(port, () => {
 const server = new WebSocket.Server({ port: 3001 });
 
 server.on('connection', ws => {
-    const messageListener = (message) => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(message);
-        }
-    };
-
-    ws.send('Welcome to the server!');
     console.log('file-reader-node application listning on port 3001');
     
-    messageSink.on('message', messageListener);
+    // ws.on('message', message => {
+    //     console.log(message)
+    //     messageSink.emit('message', message);
+    // });
 
-    ws.on('message', message => {
-        messageSink.emit('message', message);
+    ws.on('message', (data) => {
+        console.log('received: %s', data);
+        messageSink.emit('message', data);
     });
 
     ws.on('close', () => {
         messageSink.off('message', messageListener);
         console.log('Connection closed');
     });
+    
+    // Add the message listener to messageSink
+    messageSink.on('message', m => {
+        ws.send(m.toString())
+    });
+   
 });
