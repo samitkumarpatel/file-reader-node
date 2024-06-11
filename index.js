@@ -100,7 +100,6 @@ server.on('connection', ws => {
     });
 
     ws.on('close', () => {
-        messageSink.off('message', messageListener);
         console.log('Connection closed');
     });
     
